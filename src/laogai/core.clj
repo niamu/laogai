@@ -12,9 +12,9 @@
   (at-at/every 1000
                #(do
                   (if (:reachable (lights/state))
-                    (when (not (tv/on?))
+                    (when (false? (tv/on?))
                       (tv/on!))
-                    (when (and (tv/on?)
+                    (when (and (true? (tv/on?))
                                (not (tv/watching?)))
                       (tv/off!)))
                   (if (tv/watching?)

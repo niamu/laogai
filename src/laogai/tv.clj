@@ -19,10 +19,11 @@
   []
   (let [result (with-programs [ssh]
                  (ssh "pabu" "./tv.sh state"))]
-    (and (.contains result
-                    "power status:")
-         (.contains result
-                    "on"))))
+    (if (not (.contains result
+                          "power status:"))
+      :error
+      (.contains result
+                 "on"))))
 
 (def plex
   {:address "10.0.0.10"
