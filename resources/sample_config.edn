@@ -1,0 +1,10 @@
+{:plex {:addr "localhost"
+        :port 32400
+        ;; Plex client name that is connected to the TV
+        :client "Plex Client"}
+ :rpi {;; SSH hostname/IP for Raspberry Pi Plex client
+       :addr "localhost"}
+ :hue {;; Philips Hue Gateway and light IDs
+       :addr "localhost"
+       :user "1234567890"
+       :lights [1 2 3]}}

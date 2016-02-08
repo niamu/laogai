@@ -1,28 +1,44 @@
 (ns laogai.lights
-  (:require [clj-http.client :as http]))
-
-(def hue {:address "10.0.0.6"
-          :user "797c7c2144e6f2a1c3d5b5c52163c18"})
+  (:require [laogai.config :refer [config]]
+            [clj-http.client :as http]))
 
 (def base
   (str "http://"
-       (:address hue)
+       (-> config :hue :addr)
        "/api/"
-       (:user hue)
+       (-> config :hue :user)
        "/"))
 
-(defn state
+(defn lights
   []
-  (:state (:body (http/get (str base "lights/1") {:as :json}))))
+  (-> config :hue :lights))
+
+(defn state
+  [light]
+  (:state (:body (http/get (str base "lights/" light) {:as :json}))))
+
+(defn reachable?
+  []
+  (every? true?
+          (map #(:reachable (state %))
+               (-> config :hue :lights))))
+
+(defn brightness
+  []
+  (:brightness (state (first (lights)))))
 
 (defn on?
   []
-  (:on (state)))
+  (every? true?
+          (map #(:on (state %))
+               (-> config :hue :lights))))
 
 (defn set!
   [params]
-  (prn "Setting light state: "
-       params)
-  (http/put (str base "lights/1/state")
-            {:form-params params
-             :content-type :json}))
+  (doseq [light (-> config :hue :lights)]
+    (http/put (str base
+                   "lights/"
+                   light
+                   "/state")
+              {:form-params params
+               :content-type :json})))

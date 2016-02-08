@@ -1,39 +1,35 @@
 (ns laogai.tv
-  (:require [clj-http.client :as http]
+  (:require [laogai.config :refer [config]]
+            [clj-http.client :as http]
             [clojure.data.xml :as xml]
             [me.raynes.conch :refer [with-programs]]))
+
+(defonce power-state
+  (atom {:on false}))
 
 (defn on!
   []
   (prn "Turning TV on...")
   (with-programs [ssh]
-    (ssh "pabu" "./tv.sh on")))
+    (ssh (-> config :rpi :addr) "./tv.sh on"))
+  (swap! power-state assoc :on true))
 
 (defn off!
   []
   (prn "Turning TV off...")
   (with-programs [ssh]
-    (ssh "pabu" "./tv.sh off")))
+    (ssh (-> config :rpi :addr) "./tv.sh off"))
+  (swap! power-state assoc :on false))
 
 (defn on?
   []
-  (let [result (with-programs [ssh]
-                 (ssh "pabu" "./tv.sh state"))]
-    (if (not (.contains result
-                          "power status:"))
-      :error
-      (.contains result
-                 "on"))))
-
-(def plex
-  {:address "10.0.0.10"
-   :port 32400})
+  (:on @power-state))
 
 (def base
   (str "http://"
-       (:address plex)
+       (-> config :plex :addr)
        ":"
-       (:port plex)
+       (-> config :plex :port)
        "/"))
 
 (defn sessions
@@ -45,7 +41,7 @@
   []
   (first (filter #(and (= :Player
                           (:tag %))
-                       (= "Pabu"
+                       (= (-> config :plex :client)
                           (:title (:attrs %))))
                  (-> (sessions)
                      :content
@@ -58,5 +54,4 @@
 
 (defn state
   []
-  (keyword
-   (:state (:attrs (pabu)))))
+  (keyword (:state (:attrs (pabu)))))
