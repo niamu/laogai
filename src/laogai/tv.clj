@@ -1,57 +1,32 @@
 (ns laogai.tv
   (:require [laogai.config :refer [config]]
-            [clj-http.client :as http]
-            [clojure.data.xml :as xml]
             [me.raynes.conch :refer [with-programs]]))
+
+(def rpi
+  (-> config :rpi))
 
 (defonce power-state
   (atom {:on false}))
 
-(defn on!
-  []
-  (prn "Turning TV on...")
-  (with-programs [ssh]
-    (ssh (-> config :rpi :addr) "./tv.sh on"))
-  (swap! power-state assoc :on true))
-
-(defn off!
-  []
-  (prn "Turning TV off...")
-  (with-programs [ssh]
-    (ssh (-> config :rpi :addr) "./tv.sh off"))
-  (swap! power-state assoc :on false))
-
 (defn on?
+  "Returns boolean value of current TV power state"
   []
   (:on @power-state))
 
-(def base
-  (str "http://"
-       (-> config :plex :addr)
-       ":"
-       (-> config :plex :port)
-       "/"))
-
-(defn sessions
+(defn on!
+  "Turn the TV on via SSH command to the Raspberry Pi"
   []
-  (xml/parse-str
-   (:body (http/get (str base "status/sessions")))))
+  (when (false? (on?))
+    (prn "Turning TV on...")
+    (swap! power-state assoc :on true)
+    (with-programs [ssh]
+      (ssh (:addr rpi) "./tv.sh on"))))
 
-(defn pabu
+(defn off!
+  "Turn the TV off via SSH command to the Raspberry Pi"
   []
-  (first (filter #(and (= :Player
-                          (:tag %))
-                       (= (-> config :plex :client)
-                          (:title (:attrs %))))
-                 (-> (sessions)
-                     :content
-                     first
-                     :content))))
-
-(defn watching?
-  []
-  (not (empty? (pabu))))
-
-(defn state
-  []
-  (keyword (:state (:attrs (pabu)))))
+  (when (true? (on?))
+    (prn "Turning TV off...")
+    (swap! power-state assoc :on false)
+    (with-programs [ssh]
+      (ssh (:addr rpi) "./tv.sh off"))))

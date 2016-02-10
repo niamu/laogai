@@ -2,43 +2,58 @@
   (:require [laogai.config :refer [config]]
             [clj-http.client :as http]))
 
-(def base
-  (str "http://"
-       (-> config :hue :addr)
-       "/api/"
-       (-> config :hue :user)
-       "/"))
+(def hue(-> config :hue))
+(def lights (:lights hue))
 
-(defn lights
-  []
-  (-> config :hue :lights))
+(def base
+  (str "http://" (:addr hue) "/api/" (:user hue) "/"))
 
 (defn state
+  "Gets the current state of a light by ID"
   [light]
   (:state (:body (http/get (str base "lights/" light) {:as :json}))))
 
 (defn reachable?
+  "Returns boolean value dependent on whether all lights are reachable"
   []
   (every? true?
-          (map #(:reachable (state %))
-               (-> config :hue :lights))))
-
-(defn brightness
-  []
-  (:brightness (state (first (lights)))))
+          (map #(:reachable (state %)) lights)))
 
 (defn on?
+  "Returns boolean value dependent on whether all lights are on"
   []
   (every? true?
-          (map #(:on (state %))
-               (-> config :hue :lights))))
+          (map #(:on (state %)) lights)))
+
+(defn samestate?
+  "Returns boolean value based on whether a given map of params
+   is equal to the current state of the light"
+  [params light]
+  (let [params (dissoc params :transitiontime)
+        lstate (state light)]
+    (every? true?
+            (map #(= (params %)
+                     (lstate %))
+                 (keys params)))))
 
 (defn set!
+  "For each light in the configuration, set the state from params"
   [params]
-  (doseq [light (-> config :hue :lights)]
-    (http/put (str base
-                   "lights/"
-                   light
-                   "/state")
-              {:form-params params
-               :content-type :json})))
+  (doseq [light lights]
+    ;; Only set a new state if it doesn't match the current state
+    (when-not (samestate? params light)
+      (prn (str "setting light " light " to: ") params)
+      (http/put (str base "lights/" light "/state")
+                {:form-params params
+                 :content-type :json}))))
+
+(defn create-user!
+  "Create a new user on the Philips Hue bridge.
+   You must press the button on the bridge before executing (30s time limit)"
+  []
+  (-> (http/post (str "http://" (:addr hue) "/api")
+                 {:form-params {:devicetype "laogai#laogai"}
+                  :content-type :json
+                  :as :json})
+      :body
+      first))

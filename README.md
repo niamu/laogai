@@ -31,15 +31,28 @@ You'll want to find out the name of the Plex client that exists on the computer/
 
 I presonally run the excellent [RasPlex](http://rasplex.com) distribution on my Raspberry Pi. This comes with `cec-client` installed already and runs Plex beautifully.
 
-Place the `tv.sh` Bash script in the home directory of the Raspberry Pi and note the hostname/IP address in `config.edn`.
+I recommend setting up a password-less SSH login with the Raspberry Pi. Place the `tv.sh` Bash script in the home directory of the Raspberry Pi and note the hostname/IP address in `config.edn`.
 
 ### Philips Hue
 
-You'll need to create a new user on your Philips Hue bridge. Documentation for how to do that will follow here at a later date. For now, I'd recommend following the excellent [clhue](https://github.com/Raynes/clhue) library on how to do this.
+You'll need to create a new user on your Philips Hue bridge. You can do this in the REPL...
 
-Get the ID of each light you wish to control. For now I'd also recommend doing this by following along with [clhue](https://github.com/Raynes/clhue).
+```Bash
+git clone git@github.com:niamu/laogai.git
+cd laogai
+lein repl
+```
 
-You'll also need to find the hostname/IP of the bridge and note all of this in the `config.edn` file.
+Make sure to press the button on the bridge shortly before running this next command in the REPL. There is a 30 second timeout upon pressing the button so be ready!
+
+```Clojure
+user> (lights/create-user!)
+[{"success":{"username": "83b7780291a6ceffbe0bd049104df"}}]
+```
+
+Get the ID of each light you wish to control. This is the number next to each light in the Philips Hue app.
+
+You'll also need to find the hostname/IP of the bridge and note all of this in the `config.edn` file. You'll also be able to find this in the Philips Hue app.
 
 ### Running
 
