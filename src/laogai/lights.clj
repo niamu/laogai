@@ -5,6 +5,8 @@
 (def hue(-> config :hue))
 (def lights (:lights hue))
 
+(defonce last-set (atom nil))
+
 (def base
   (str "http://" (:addr hue) "/api/" (:user hue) "/"))
 
@@ -14,10 +16,13 @@
   (:state (:body (http/get (str base "lights/" light) {:as :json}))))
 
 (defn reachable?
-  "Returns boolean value dependent on whether all lights are reachable"
+  "Returns boolean value dependent on whether some lights are reachable.
+   In an effort to be tolerant of network issues, we gather a sampling of 3"
   []
-  (every? true?
-          (map #(:reachable (state %)) lights)))
+  (some true?
+        (flatten (repeatedly 3 (fn []
+                                 (map #(:reachable (state %))
+                                      lights))))))
 
 (defn on?
   "Returns boolean value dependent on whether all lights are on"
@@ -40,9 +45,10 @@
   "For each light in the configuration, set the state from params"
   [params]
   (doseq [light lights]
-    ;; Only set a new state if it doesn't match the current state
-    (when-not (samestate? params light)
-      (prn (str "setting light " light " to: ") params)
+    ;; Only set a new state if it doesn't match the previously set state
+    ;; This will allow for manual changes to lights that won't be overridden
+    (when-not (samestate? params @last-set)
+      (reset! last-set params)
       (http/put (str base "lights/" light "/state")
                 {:form-params params
                  :content-type :json}))))

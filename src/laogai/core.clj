@@ -22,7 +22,7 @@
     (if (plex/watching?)
       (condp = (plex/state)
         :paused (lights/set! {:on true :bri 1})
-        :playing (lights/set! {:on false :bri 1}))
+        :playing (lights/set! {:on false}))
       (lights/set! {:on true :bri 254 :transitiontime 300}))))
 
 (defn -main
