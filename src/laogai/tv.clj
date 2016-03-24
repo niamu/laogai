@@ -1,12 +1,26 @@
 (ns laogai.tv
   (:require [laogai.config :refer [config]]
+            [clojure.string :as string]
             [me.raynes.conch :refer [with-programs]]))
 
 (def rpi
   (-> config :rpi))
 
 (defonce power-state
-  (atom {:on false}))
+  (atom {:on nil}))
+
+(defn state
+  []
+  (with-programs [ssh]
+    (-> (ssh (:addr rpi) "./tv.sh state")
+        (string/split #":")
+        last
+        (string/trim)
+        keyword)))
+
+(defn init
+  []
+  (swap! power-state assoc :on (= :on (state))))
 
 (defn on?
   "Returns boolean value of current TV power state"

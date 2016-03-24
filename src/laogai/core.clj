@@ -5,7 +5,8 @@
              [lights :as lights]]
             [overtone.at-at :as at-at]))
 
-(defonce timing-pool (at-at/mk-pool))
+(defonce tv-timing-pool (at-at/mk-pool))
+(defonce light-timing-pool (at-at/mk-pool))
 
 (defn tv-behaviour
   "Turn the TV on/off if the lights are on/off"
@@ -28,10 +29,13 @@
 (defn -main
   "The main behavioural logic for changing the TV and lights state"
   []
-  (prn "The Earth King invites you to Lake Laogai")
+  (println "The Earth King invites you to Lake Laogai")
+  (tv/init)
   (at-at/every 1000
-               #(do
-                  (tv-behaviour)
-                  (light-behaviour))
-               timing-pool
-               :desc "Timing pool"))
+               #(tv-behaviour)
+               tv-timing-pool
+               :desc "TV timing pool")
+  (at-at/every 200
+               #(light-behaviour)
+               light-timing-pool
+               :desc "Light timing pool"))
