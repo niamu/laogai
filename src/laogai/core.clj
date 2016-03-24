@@ -1,4 +1,5 @@
 (ns laogai.core
+  (:gen-class)
   (:require [laogai
              [tv :as tv]
              [plex :as plex]
