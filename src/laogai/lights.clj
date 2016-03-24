@@ -30,25 +30,15 @@
   (every? true?
           (map #(:on (state %)) lights)))
 
-(defn samestate?
-  "Returns boolean value based on whether a given map of params
-   is equal to the current state of the light"
-  [params light]
-  (let [params (dissoc params :transitiontime)
-        lstate (state light)]
-    (every? true?
-            (map #(= (params %)
-                     (lstate %))
-                 (keys params)))))
-
 (defn set!
   "For each light in the configuration, set the state from params"
   [params]
   (doseq [light lights]
     ;; Only set a new state if it doesn't match the previously set state
     ;; This will allow for manual changes to lights that won't be overridden
-    (when-not (samestate? params @last-set)
+    (when-not (= params @last-set)
       (reset! last-set params)
+      (prn "Setting light " light " to: " params)
       (http/put (str base "lights/" light "/state")
                 {:form-params params
                  :content-type :json}))))
