@@ -16,13 +16,13 @@
   (:state (:body (http/get (str base "lights/" light) {:as :json}))))
 
 (defn reachable?
-  "Returns boolean value dependent on whether some lights are reachable.
-   In an effort to be tolerant of network issues, we gather a sampling of 3"
+  "Returns boolean value dependent on whether some lights are reachable."
   []
-  (some true?
-        (flatten (repeatedly 3 (fn []
-                                 (map #(:reachable (state %))
-                                      lights))))))
+  (condp some (map #(:reachable (state %))
+                   lights)
+    true? true
+    false? false
+    nil? nil))
 
 (defn on?
   "Returns boolean value dependent on whether all lights are on"

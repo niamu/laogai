@@ -12,10 +12,10 @@
 (defn tv-behaviour
   "Turn the TV on/off if the lights are on/off"
   []
-  (if (lights/reachable?)
-    (tv/on!)
-    (when-not (plex/watching?)
-      (tv/off!))))
+  (condp = (lights/reachable?)
+    true (tv/on!)
+    false (when-not (plex/watching?)
+            (tv/off!))))
 
 (defn light-behaviour
   "Adjust the lights if TV is playing media (on Plex)"
