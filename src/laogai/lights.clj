@@ -5,7 +5,7 @@
 (def hue(-> config :hue))
 (def lights (:lights hue))
 
-(defonce last-set (atom nil))
+(defonce last-set (atom {}))
 
 (def base
   (str "http://" (:addr hue) "/api/" (:user hue) "/"))
@@ -36,8 +36,8 @@
   (doseq [light lights]
     ;; Only set a new state if it doesn't match the previously set state
     ;; This will allow for manual changes to lights that won't be overridden
-    (when-not (= params @last-set)
-      (reset! last-set params)
+    (when-not (= params (@last-set light))
+      (swap! last-set assoc light params)
       (prn "Setting light " light " to: " params)
       (http/put (str base "lights/" light "/state")
                 {:form-params params
