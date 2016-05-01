@@ -4,6 +4,11 @@
         :client "Plex Client"}
  :rpi {;; SSH hostname/IP for Raspberry Pi Plex client
        :addr "localhost"}
+ :steam {:addr "10.0.0.9" ;; Steam computer IP
+         :url "api.steampowered.com"
+         :key "1234567890" ;; http://steamcommunity.com/dev/apikey
+         :steamid "1234567890" ;; Your Steam ID
+         }
  :hue {;; Philips Hue Gateway and light IDs
        :addr "localhost"
        :user "1234567890"

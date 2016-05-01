@@ -9,6 +9,9 @@
 (defonce power-state
   (atom {:on nil}))
 
+(defonce input
+  (atom nil))
+
 (defn state
   []
   (with-programs [ssh]
@@ -21,6 +24,15 @@
 (defn init
   []
   (swap! power-state assoc :on (= :on (state))))
+
+(defn switch-input!
+  [input-select]
+  (condp = input-select
+    :steam (comment "No need to handle this case for now. It will never happen")
+    :plex (when-not (= input-select @input)
+            (with-programs [ssh]
+              (ssh (:addr rpi) "./tv.sh active-input"))))
+  (reset! input input-select))
 
 (defn on?
   "Returns boolean value of current TV power state"

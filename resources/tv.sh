@@ -17,3 +17,9 @@ then
     echo "TV state is..."
     echo "pow 5" | cec-client -s -d 1 | grep "status"
 fi
+
+if [ "$1" == "active-input" ]
+then
+    echo "TV switching to Plex input"
+    echo "as" | cec-client -s -d 1
+fi
