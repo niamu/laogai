@@ -20,7 +20,11 @@
                      "/ISteamUser/GetPlayerSummaries/v0002")
                 {:query-params {:key (:key steam)
                                 :steamids steamid
-                                :format "json"}})
+                                :format "json"}
+                 :retry-handler
+                 (fn [ex try-count http-context]
+                   (println "Steam Error:" ex)
+                   (if (> try-count 4) false true))})
       :body
       (json/read-str :key-fn keyword)
       :response :players first))

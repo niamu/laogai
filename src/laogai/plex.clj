@@ -12,8 +12,11 @@
 (defn sessions
   "Parse returned XML of all current Plex sessions"
   []
-  (xml/parse-str
-   (:body (http/get (str base "status/sessions")))))
+  (xml/parse-str (:body (http/get (str base "status/sessions")
+                                  {:retry-handler
+                                   (fn [ex try-count http-context]
+                                     (println "Plex Error:" ex)
+                                     (if (> try-count 4) false true))}))))
 
 (defn client
   "Returns the parsed XML contents of the Plex client session"

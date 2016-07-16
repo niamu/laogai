@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/data.xml "0.0.8"]
                  [org.clojure/data.json "0.2.6"]
+                 [org.clojure/core.memoize "0.5.8"]
                  [cheshire "5.5.0"]
                  [clj-http "2.0.0"]
                  [overtone/at-at "1.2.0"]

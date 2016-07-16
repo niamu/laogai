@@ -1,6 +1,7 @@
 (ns laogai.lights
   (:require [laogai.config :refer [config]]
-            [clj-http.client :as http]))
+            [clj-http.client :as http]
+            [clojure.core.memoize :as memo]))
 
 (def hue(-> config :hue))
 (def lights (:lights hue))
@@ -30,18 +31,18 @@
   (every? true?
           (map #(:on (state %)) lights)))
 
-(defn set!
+(def set!
   "For each light in the configuration, set the state from params"
-  [params]
-  (doseq [light lights]
-    ;; Only set a new state if it doesn't match the previously set state
-    ;; This will allow for manual changes to lights that won't be overridden
-    (when-not (= params (@last-set light))
-      (swap! last-set assoc light params)
-      (prn "Setting light " light " to: " params)
-      (http/put (str base "lights/" light "/state")
-                {:form-params params
-                 :content-type :json}))))
+  (memo/fifo
+   (fn [params]
+     (doseq [light lights]
+       ;; Only set a new state if it doesn't match the previously set state
+       ;; This will allow for manual changes to lights that won't be overridden
+       (prn (str "Setting light " light " to: " params))
+       (http/put (str base "lights/" light "/state")
+                 {:form-params params
+                  :content-type :json})))
+   :fifo/threshold 1))
 
 (defn create-user!
   "Create a new user on the Philips Hue bridge.
