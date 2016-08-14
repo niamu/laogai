@@ -28,6 +28,7 @@
     (cond
       (plex/watching?) (condp = (plex/state)
                          :paused (lights/set! {:on true :bri 1})
+                         :buffering (lights/set! {:on true :bri 1})
                          :playing (lights/set! {:on false}))
       (steamlink/playing?) (lights/set! {:on false})
       :else (lights/set! {:on true :bri 254 :transitiontime 300}))))
