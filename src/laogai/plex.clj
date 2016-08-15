@@ -11,19 +11,27 @@
   (str "http://" (:addr plex) ":" (:port plex) "/"))
 
 (defn on?
+  "Returns true if Plex client is currently connected
+  Note: This has a significant delay to disappear from the list"
   []
-  (try
-    (.isReachable (InetAddress/getByName (-> config :appletv :addr)) 1500)
-    (catch Exception e false)))
+  (some #(= (:client plex)
+            (-> % :attrs :name))
+        (-> (http/get (str base "clients")
+                      {:retry-handler
+                       (fn [ex try-count http-context]
+                         (println "Plex Error:" ex)
+                         (if (> try-count 4) false true))})
+            :body xml/parse-str :content)))
 
 (defn sessions
   "Parse returned XML of all current Plex sessions"
   []
-  (xml/parse-str (:body (http/get (str base "status/sessions")
-                                  {:retry-handler
-                                   (fn [ex try-count http-context]
-                                     (println "Plex Error:" ex)
-                                     (if (> try-count 4) false true))}))))
+  (-> (http/get (str base "status/sessions")
+                {:retry-handler
+                 (fn [ex try-count http-context]
+                   (println "Plex Error:" ex)
+                   (if (> try-count 4) false true))})
+      :body xml/parse-str))
 
 (defn client
   "Returns the parsed XML contents of the Plex client session"
@@ -31,10 +39,7 @@
   (first (filter #(and (= :Player (:tag %))
                        (= (:client plex)
                           (:title (:attrs %))))
-                 (-> (sessions)
-                     :content
-                     first
-                     :content))))
+                 (-> (sessions) :content first :content))))
 
 (defn watching?
   "Returns boolean value dependent on whether the Plex client is in a session"
