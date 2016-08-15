@@ -1,13 +1,20 @@
 (ns laogai.plex
   (:require [laogai.config :refer [config]]
             [clj-http.client :as http]
-            [clojure.data.xml :as xml]))
+            [clojure.data.xml :as xml])
+  (:import [java.net InetAddress]))
 
 (def plex
   (-> config :plex))
 
 (def base
   (str "http://" (:addr plex) ":" (:port plex) "/"))
+
+(defn on?
+  []
+  (try
+    (.isReachable (InetAddress/getByName (-> config :appletv :addr)) 1500)
+    (catch Exception e false)))
 
 (defn sessions
   "Parse returned XML of all current Plex sessions"
