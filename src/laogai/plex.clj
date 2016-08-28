@@ -17,7 +17,8 @@
   (some #(= (:client plex)
             (-> % :attrs :name))
         (-> (http/get (str base "clients")
-                      {:retry-handler
+                      {:query-params {"X-Plex-Token" (:token plex)}
+                       :retry-handler
                        (fn [ex try-count http-context]
                          (println "Plex Error:" ex)
                          (if (> try-count 4) false true))})
@@ -27,7 +28,8 @@
   "Parse returned XML of all current Plex sessions"
   []
   (-> (http/get (str base "status/sessions")
-                {:retry-handler
+                {:query-params {"X-Plex-Token" (:token plex)}
+                 :retry-handler
                  (fn [ex try-count http-context]
                    (println "Plex Error:" ex)
                    (if (> try-count 4) false true))})
